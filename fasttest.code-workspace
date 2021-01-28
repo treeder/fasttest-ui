@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../fasttest1"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../firetils"
+		},
+		{
+			"path": "../simple_api"
+		}
+	],
+	"settings": {}
+}
