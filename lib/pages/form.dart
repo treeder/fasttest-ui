@@ -1,4 +1,7 @@
+import 'package:fasttestui/common/globals.dart';
+import 'package:fasttestui/common/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:simple_api/simple_api.dart';
 
 import '../models/post.dart';
 
@@ -23,6 +26,35 @@ class FormPage extends StatefulWidget {
 class _FormPageState extends State<FormPage> {
   final _formKey = GlobalKey<FormState>();
 
+  final myController = TextEditingController();
+  String errMsg;
+  bool waiting = false;
+
+  Future<Post> postF;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.post != null) {
+      postF = Future.value(widget.post);
+      return;
+    } else if (widget.id != null) {
+      // get by ID
+      print("ID: ${widget.id}");
+      postF = SimpleAPI.get<Post>(Globals.apiURL + "/posts/" + widget.id,
+          fromJson: Post.fromJsonStatic);
+    } else {
+      postF = Future.value(Post());
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the
+    // widget tree.
+    myController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -38,35 +70,76 @@ class _FormPageState extends State<FormPage> {
         title: Text("Form"),
       ),
       body: Center(
-          // Center is a layout widget. It takes a single child and positions it
-          // in the middle of the parent.
-          child: Form(
-              key: _formKey,
-              child: Column(children: <Widget>[
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Enter something'),
-                  // The validator receives the text that the user has entered.
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Please enter some text';
-                    }
-                    return null;
-                  },
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Validate returns true if the form is valid, otherwise false.
-                    if (_formKey.currentState.validate()) {
-                      // If the form is valid, display a snackbar. In the real world,
-                      // you'd often call a server or save the information in a database.
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
+        child: FutureBuilder<Post>(
+            future: postF,
+            builder: (context, snapshot) {
+              print("in futurebuilder");
+              if (snapshot.hasError) {
+                return Styles.errorText(snapshot.error.toString());
+              }
+              if (!snapshot.hasData) {
+                return Styles.waiting();
+              }
+              var post = snapshot.data;
+              print("in build.builder");
+              print(post);
+              myController.text = post.title;
+              return Form(
+                  key: _formKey,
+                  child: Column(children: <Widget>[
+                    TextFormField(
+                      controller: myController,
+                      decoration: InputDecoration(labelText: 'Enter something'),
+                      // The validator receives the text that the user has entered.
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        // Validate returns true if the form is valid, otherwise false.
+                        if (_formKey.currentState.validate()) {
+                          // If the form is valid, display a snackbar. In the real world,
+                          // you'd often call a server or save the information in a database.
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Processing Data')));
-                    }
-                  },
-                  child: Text('Submit'),
-                ),
-              ]))),
+                          post.title = myController.text;
+                          setState(() {
+                            waiting = true;
+                          });
+                          try {
+                            print("trying");
+                            post = await SimpleAPI.post<Post>(
+                                Globals.apiURL + "/posts",
+                                body: post,
+                                fromJson: Post.fromJsonStatic);
+                            print("navigating");
+                            Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/details/' + post.id,
+                                ModalRoute.withName('/list'));
+                          } catch (err, stacktrace) {
+                            print("caught error");
+                            print(err);
+                            print(stacktrace);
+                            setState(() {
+                              waiting = false;
+                              errMsg = err.toString();
+                            });
+                          }
+                        }
+                      },
+                      child: Text('Submit'),
+                    ),
+                    if (waiting) Styles.waiting(),
+                    if (errMsg != null) Styles.errorText(errMsg),
+                  ]));
+            }),
+      ),
     );
   }
 }

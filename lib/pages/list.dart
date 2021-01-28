@@ -1,5 +1,8 @@
+import 'package:fasttestui/common/globals.dart';
+import 'package:fasttestui/common/styles.dart';
 import 'package:fasttestui/models/post.dart';
 import 'package:flutter/material.dart';
+import 'package:simple_api/simple_api.dart';
 
 import 'details.dart';
 import 'form.dart';
@@ -21,6 +24,19 @@ class ListPage extends StatefulWidget {
 }
 
 class _ListPageState extends State<ListPage> {
+  Future<List<Post>> postsF;
+
+  @override
+  void initState() {
+    super.initState();
+    refresh();
+  }
+
+  void refresh() {
+    postsF = SimpleAPI.getList<Post>(Globals.apiURL + "/posts",
+        rootPath: "posts", fromJson: Post.fromJsonStatic);
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -38,49 +54,88 @@ class _ListPageState extends State<ListPage> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: ListView.builder(
-          itemCount: posts.length,
-          itemBuilder: (BuildContext context, int index) {
-            var p = posts[index];
-            return ListTile(
-              title: Text(p.title),
-              onTap: () {
-                Navigator.pushNamed(context, '/details/' + p.id);
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //       builder: (context) => DetailsPage(post:posts[index])),
-                // );
-              },
-            );
-          },
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          // children: <Widget>[
-          //   ListTile(
-          //     title: Text(posts[0].title),
-          //     onTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //             builder: (context) => DetailsPage(posts[0])),
-          //       );
-          //     },
-          //   ),
-          // ],
-        ),
+        child: FutureBuilder<List<Post>>(
+            future: postsF,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Styles.errorText(snapshot.error.toString());
+              }
+              if (!snapshot.hasData) {
+                return Styles.waiting();
+              }
+              var posts = snapshot.data;
+              return ListView.builder(
+                itemCount: posts.length,
+                itemBuilder: (BuildContext context, int index) {
+                  var p = posts[index];
+                  return ListTile(
+                    title: Text(p.title),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/details/' + p.id);
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //       builder: (context) => DetailsPage(post:posts[index])),
+                      // );
+                    },
+                    trailing:
+                        Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                      // Icon(Icons.flight),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        tooltip: 'Delete',
+                        onPressed: () async {
+                          try {
+                            await SimpleAPI.delete(
+                                Globals.apiURL + "/posts/" + p.id);
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: new Text("Deleted"),
+                            ));
+                            setState(() {
+                              refresh();
+                            });
+                          } catch (err) {
+                            print("ERROR!");
+                            print(err.toString());
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: new Text(err.toString()),
+                              backgroundColor: Colors.red,
+                            ));
+                            throw err;
+                          }
+                        },
+                      ),
+                    ]),
+                  );
+                },
+                // Column is also a layout widget. It takes a list of children and
+                // arranges them vertically. By default, it sizes itself to fit its
+                // children horizontally, and tries to be as tall as its parent.
+                //
+                // Invoke "debug painting" (press "p" in the console, choose the
+                // "Toggle Debug Paint" action from the Flutter Inspector in Android
+                // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+                // to see the wireframe for each widget.
+                //
+                // Column has various properties to control how it sizes itself and
+                // how it positions its children. Here we use mainAxisAlignment to
+                // center the children vertically; the main axis here is the vertical
+                // axis because Columns are vertical (the cross axis would be
+                // horizontal).
+                // children: <Widget>[
+                //   ListTile(
+                //     title: Text(posts[0].title),
+                //     onTap: () {
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //             builder: (context) => DetailsPage(posts[0])),
+                //       );
+                //     },
+                //   ),
+                // ],
+              );
+            }),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

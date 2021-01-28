@@ -2,7 +2,6 @@ import 'package:fasttestui/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import '404.dart';
-import 'common/styles.dart';
 import 'signin.dart';
 
 void main() {
@@ -159,5 +158,5 @@ afterSignIn(BuildContext context, auth.User user) {
         context, route.settings.name, (route) => false);
     return;
   }
-  Navigator.pushNamedAndRemoveUntil(context, '/browse', (route) => false);
+  Navigator.pushNamedAndRemoveUntil(context, '/list', (route) => false);
 }

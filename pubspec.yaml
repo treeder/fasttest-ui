@@ -41,6 +41,8 @@ dependencies:
   firebase_auth_oauth:
   flutter_signin_button:
   google_sign_in:
+  simple_api:
+    path: ../simple_api/
 
 dev_dependencies:
   flutter_test:
