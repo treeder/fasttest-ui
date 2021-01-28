@@ -1,11 +1,14 @@
 class Post {
   String id;
   String title;
-  Post({this.id, this.title});
+  int votes;
+
+  Post({this.id, this.title, this.votes});
 
   Post.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        title = json['title'];
+        title = json['title'],
+        votes = json['votes'];
   // email = json['email'],
   // photoURL = json['photo_url'],
   // createdAt = DateTime.parse(json['created_at']),
@@ -14,6 +17,7 @@ class Post {
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
+        'votes': votes,
         // 'display_name': name,
         // 'email': email,
         // 'photo_url': photoURL,

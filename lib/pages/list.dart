@@ -80,7 +80,32 @@ class _ListPageState extends State<ListPage> {
                     },
                     trailing:
                         Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                      // Icon(Icons.flight),
+                      Text("${(p.votes ?? '0')}"),
+                      IconButton(
+                        icon: Icon(Icons.thumb_up),
+                        tooltip: 'Upvote',
+                        onPressed: () async {
+                          try {
+                            await SimpleAPI.post(
+                                Globals.apiURL + "/posts/" + p.id + "/vote",
+                                body: {"count": 1});
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: new Text("Voted"),
+                            ));
+                            setState(() {
+                              refresh();
+                            });
+                          } catch (err) {
+                            print("ERROR!");
+                            print(err.toString());
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: new Text(err.toString()),
+                              backgroundColor: Colors.red,
+                            ));
+                            throw err;
+                          }
+                        },
+                      ),
                       IconButton(
                         icon: Icon(Icons.delete),
                         tooltip: 'Delete',
