@@ -36,12 +36,6 @@ class SignIn extends StatelessWidget {
               // can refer to the Scaffold with Scaffold.of().
               builder: (BuildContext context) {
             return Column(children: [
-              Center(
-                  child: Image(
-                      image: AssetImage(
-                          "images/logos/turbowallet-blue-600x131.png"),
-                      width: 250)),
-              SizedBox(height: 20),
               Container(
                 child: Text("Please Sign In"),
               ),
