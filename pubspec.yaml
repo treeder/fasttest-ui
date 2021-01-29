@@ -27,16 +27,8 @@ dependencies:
   fluro: ^1.7.8
 
   firebase_core: ^0.7.0
-  # Add the dependency for the FlutterFire plugin for Google Analytics
   firebase_analytics: ^7.0.0
-
-  # Add the dependencies for any other Firebase products you want to use in your app
-  # For example, to use Firebase Authentication and Cloud Firestore
   firebase_auth: ^0.20.0
-  cloud_firestore: ^0.16.0
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  # cupertino_icons: ^1.0.2
 
   firebase_auth_oauth:
   flutter_signin_button:
